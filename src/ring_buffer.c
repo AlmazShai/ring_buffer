@@ -76,6 +76,11 @@ rb_ret_t rb_init_read_it(ring_buffer_t* rb, rb_it_t* it)
 {
     CHECK_IF_INIT(rb);
 
+    if (it == NULL)
+    {
+        return RB_INVALID_ARG;
+    }
+
     it->rb  = rb;
     it->idx = rb->tail;
     return RB_OK;
