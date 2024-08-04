@@ -49,6 +49,11 @@ public:
             ASSERT_EQ(rb_add(&m_rb, &i), RB_OK);
         }
     }
+
+    void TearDown() override
+    {
+        RingBufferInitialized::TearDown();
+    }
 };
 
 TEST_F(RingBufferTest, rb_init_WhenGivenInvalidArgument_ReturnsError)
@@ -252,7 +257,7 @@ TEST_F(RingBufferInitialized, rb_get_next_val_WhenNotInitialized_ReturnsError)
 }
 
 TEST_F(RingBufferInitialized,
-       rb_get_next_val_GivenTwoElements_WhenReadTreeElements_ReturnErrorOnThird)
+       rb_get_next_val_GivenTwoElements_WhenReadThreeElements_ReturnErrorOnThird)
 {
     // Arrange
     size_t val1 = 12;
@@ -375,6 +380,47 @@ TEST_F(RingBufferFull,
     }
 
     EXPECT_EQ(rb_get_next_val(&it, NULL), RB_EMPTY);
+}
+
+TEST_F(RingBufferTest, rb_get_next_val_WhenReadComplexStructure_ReadCorrectValue)
+{
+    struct Test
+    {
+        uint32_t val1;
+        uint8_t  val2;
+        uint32_t val3;
+
+        bool operator==(const Test& other) const
+        {
+            return (other.val1 == val1) && (other.val2 == val2) && (other.val3 == val3);
+        }
+    };
+
+    const size_t elSize   = sizeof(Test);
+    const size_t cap      = 5;
+    const size_t buffSize = (cap + 1) * elSize;
+    char         buff[buffSize];
+
+    ring_buffer_t rb;
+    ASSERT_EQ(rb_init(&rb, buff, buffSize, elSize), RB_OK);
+
+    Test expectedEl1 = {123, 8, 32};
+    Test expectedEl2 = {321, 6, 23};
+
+    ASSERT_EQ(rb_add(&rb, &expectedEl1), RB_OK);
+    ASSERT_EQ(rb_add(&rb, &expectedEl2), RB_OK);
+
+    // Act
+    rb_it_t it;
+    ASSERT_EQ(rb_init_read_it(&rb, &it), RB_OK);
+
+    Test el1;
+    Test el2;
+    EXPECT_EQ(rb_get_next_val(&it, &el1), RB_OK);
+    EXPECT_EQ(rb_get_next_val(&it, &el2), RB_OK);
+
+    EXPECT_EQ(el1, expectedEl1);
+    EXPECT_EQ(el2, expectedEl2);
 }
 
 } // namespace

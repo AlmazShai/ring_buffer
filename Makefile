@@ -60,5 +60,17 @@ ring_buffer.o : $(INCLUDE_DIR)/ring_buffer.h $(SRC_DIR)/ring_buffer.c
 ringBufferTest.o : $(TEST_DIR)/ringBufferTest.cpp $(INCLUDE_DIR)/ring_buffer.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $(TEST_DIR)/ringBufferTest.cpp
 
-gtest : ring_buffer.o ringBufferTest.o gtest_main.a 
+hr_gen.o : $(INCLUDE_DIR)/hr_gen.h $(SRC_DIR)/hr_gen.c 
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $(SRC_DIR)/hr_gen.c
+
+hrGenTest.o : $(TEST_DIR)/hrGenTest.cpp $(INCLUDE_DIR)/hr_gen.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $(TEST_DIR)/hrGenTest.cpp
+
+hr_ema.o : $(INCLUDE_DIR)/hr_ema.h $(SRC_DIR)/hr_ema.c 
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $(SRC_DIR)/hr_ema.c
+
+hrEmaTest.o : $(TEST_DIR)/hrEmaTest.cpp $(INCLUDE_DIR)/hr_ema.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $(TEST_DIR)/hrEmaTest.cpp
+
+gtest : ring_buffer.o ringBufferTest.o hr_gen.o hrGenTest.o hr_ema.o hrEmaTest.o gtest_main.a 
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
