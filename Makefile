@@ -26,6 +26,7 @@ TARGET = gtest
 
 all : $(TARGET)
 
+main : 
 
 clean :
 	rm -f gtest gtest.a gtest_main.a *.o
@@ -71,6 +72,12 @@ hr_ema.o : $(INCLUDE_DIR)/hr_ema.h $(SRC_DIR)/hr_ema.c
 
 hrEmaTest.o : $(TEST_DIR)/hrEmaTest.cpp $(INCLUDE_DIR)/hr_ema.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $(TEST_DIR)/hrEmaTest.cpp
+
+main.o : main.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c main.cpp
+
+main : main.o ring_buffer.o hr_gen.o hr_ema.o
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
 
 gtest : ring_buffer.o ringBufferTest.o hr_gen.o hrGenTest.o hr_ema.o hrEmaTest.o gtest_main.a 
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
