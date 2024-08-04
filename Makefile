@@ -7,29 +7,48 @@ INCLUDE_DIR = ./include
 SRC_DIR = ./src
 TEST_DIR = ./test
 
+# Source files
+LIB_SRCS = $(wildcard $(SRC_DIR)/*.c)
+TEST_SRCS = $(wildcard $(TEST_DIR)/*.cpp)
+MAIN_SRC = main.cpp
+
+# Object files
+LIB_OBJS = $(LIB_SRCS:.c=.o)
+TEST_OBJS = $(TEST_SRCS:.cpp=.o)
+MAIN_OBJ = $(MAIN_SRC:.cpp=.o)
+
+# Targets
+TARGET_MAIN = main
+TARGET_TEST = gtest
+
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
 # the compiler doesn't generate warnings in Google Test headers.
 CPPFLAGS += -isystem $(GTEST_DIR)/include
 
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -Wall -Wextra -pthread
+CXXFLAGS += -I$(INCLUDE_DIR) -g -Wall -Wextra -pthread
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
 
-TARGET = gtest
 
 # House-keeping build targets.
+.PHONY: all clean main test
+all: $(TARGET_MAIN) $(TARGET_TEST)
 
-all : $(TARGET)
+# Unit test target
+$(TARGET_TEST) : $(LIB_OBJS) $(TEST_OBJS) gtest_main.a 
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
 
-main : 
+# Main target
+$(TARGET_MAIN): $(LIB_OBJS) $(MAIN_OBJ)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
 
 clean :
-	rm -f gtest gtest.a gtest_main.a *.o
+	rm -f $(SRC_DIR)/*.o $(TEST_DIR)/*.o main gtest gtest.a gtest_main.a *.o
 
 # Builds gtest.a and gtest_main.a.
 
@@ -55,29 +74,11 @@ gtest.a : gtest-all.o
 gtest_main.a : gtest-all.o gtest_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
-ring_buffer.o : $(INCLUDE_DIR)/ring_buffer.h $(SRC_DIR)/ring_buffer.c 
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $(SRC_DIR)/ring_buffer.c
 
-ringBufferTest.o : $(TEST_DIR)/ringBufferTest.cpp $(INCLUDE_DIR)/ring_buffer.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $(TEST_DIR)/ringBufferTest.cpp
+# Compile .c files
+%.o: %.c
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
-hr_gen.o : $(INCLUDE_DIR)/hr_gen.h $(SRC_DIR)/hr_gen.c 
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $(SRC_DIR)/hr_gen.c
-
-hrGenTest.o : $(TEST_DIR)/hrGenTest.cpp $(INCLUDE_DIR)/hr_gen.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $(TEST_DIR)/hrGenTest.cpp
-
-hr_ema.o : $(INCLUDE_DIR)/hr_ema.h $(SRC_DIR)/hr_ema.c 
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $(SRC_DIR)/hr_ema.c
-
-hrEmaTest.o : $(TEST_DIR)/hrEmaTest.cpp $(INCLUDE_DIR)/hr_ema.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $(TEST_DIR)/hrEmaTest.cpp
-
-main.o : main.cpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCLUDE_DIR) -c main.cpp
-
-main : main.o ring_buffer.o hr_gen.o hr_ema.o
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
-
-gtest : ring_buffer.o ringBufferTest.o hr_gen.o hrGenTest.o hr_ema.o hrEmaTest.o gtest_main.a 
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+# Compile .cpp files
+%.o: %.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
