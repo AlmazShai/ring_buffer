@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
     size_t bufferCapacity = 10;
     if (argc > 1)
     {
-        bufferCapacity = std::stoul(argv[0]);
+        bufferCapacity = std::stoul(argv[1]);
     }
 
     const size_t elSize     = sizeof(uint8_t);

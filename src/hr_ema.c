@@ -18,7 +18,8 @@ uint8_t hr_ema_calc(ring_buffer_t* rb)
         res = val;
     }
 
-    // calculate exponential smoothing based on rest elements
+    // calculate exponential smoothing based on rest elements using following formula:
+    // s(t) = αx(t) + (1-α)st-1
     while (rb_get_next_val(&it, &val) == RB_OK)
     {
         res = HR_EMA_ALPHA * val + (1 - HR_EMA_ALPHA) * res;
